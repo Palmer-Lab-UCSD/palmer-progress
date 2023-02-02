@@ -32,7 +32,7 @@ pheno_info_table <- reactive({
   safely_load_df(
     input$selected_project, "descriptions", 
     "This project does not have information about the phenotypes measured"
-  )[,c("column_name", "trait_covariate", "description")]
+  )[,1:3]
 })
 
 # load measurements for phenotypes
