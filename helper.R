@@ -56,7 +56,7 @@ LOCAL_CREDS <- paste0(getwd(), "/.database-access.json")
 
 
 # reads json file (hidden in the server) for PostgreSQL credentials
-AMA_CREDS <- fromJSON(file = LOCAL_CREDS) 
+AMA_CREDS <- fromJSON(file = SERVER_CREDS) 
 
 # schemas to exclude from the project catalog
 NON_PROJECT_SCHEMAS <- c("information_schema", "orchid", "public",
