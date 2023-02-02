@@ -71,10 +71,6 @@ table_exists <- function(project, table) {
     table %in% tables_by_schema[tables_by_schema$schemaname == project,2][[1]]
 }
 
-# remove any projects lacking either .gwas_phenotypes or .descriptions
-projects <- projects[sapply(projects, table_exists, "gwas_phenotypes") |
-                       sapply(projects, table_exists, "descriptions")]
-
 # helper function to check if a data table exists before actually loading it
 safely_load_df <- function(project, table, msg) {
   # display an understandable message if the data table is not found
