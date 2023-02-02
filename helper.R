@@ -12,8 +12,8 @@ sapply(PACKAGES, require, character.only = TRUE)
 
 # contrasting colors which tolerate black text on top
 COLORBLIND_PALETTE <- c("#77AADD", "#EE8866", "#EEDD88", "#FFAABB", "#99DDFF",
-                        "#44BB99", "#BBCC33", "#AAAA00", "#AAAAAA", "#444444")
-                        
+                                 "#44BB99", "#BBCC33", "#AAAA00", "#AAAAAA", "#444444")
+                                 
 # report URLS and dates to display
 URLS <- data.frame(urls = 
                      rep(paste0("https://dl.dropboxusercontent.com/s/",
@@ -49,141 +49,18 @@ REPORT_LOOKUP <- data.frame(
                              "reaction_time"),
                         list("crf_NY", "pavca_NY", "ccp")))
 )
-                                 
+
 # location of .database-access file when this app is live or local
 SERVER_CREDS <- "/srv/shiny-server/palmer-progress/.database-access.json"
 LOCAL_CREDS <- paste0(getwd(), "/.database-access.json")
 
+
+# reads json file (hidden in the server) for PostgreSQL credentials
+AMA_CREDS <- fromJSON(file = LOCAL_CREDS) 
+
 # schemas to exclude from the project catalog
 NON_PROJECT_SCHEMAS <- c("information_schema", "orchid", "public",
                          "pg_catalog", "sample_tracking")
-
-# establish database link ----
-
-# reads json file (hidden in the server) for PostgreSQL credentials
-ama_creds <- fromJSON(file = SERVER_CREDS) 
-
-# connect to database
-get_con <- function() {
-  # uses the list generated from JSON file to enter in credentials
-  dbConnect(RPostgres::Postgres(), dbname = ama_creds$database,
-                 host = ama_creds$host , port = 5432, user = ama_creds$user, 
-                 password = ama_creds$password) 
-}
-con <- get_con()
-
-# name the application being connected to database
-dbSendQuery(con, "set application_name = 'Palmer Shiny App'")
-
-# load tables ----
-
-# credentials to log in to the app, not database
-credentials <- dbGetQuery(con, "SELECT * FROM sample_tracking.credentials")
-
-# progress tables
-individual_progress <- 
-  dbGetQuery(con, "SELECT * FROM sample_tracking.progress_checklist")
-project_progress_active <- 
-  dbGetQuery(con, "SELECT * FROM sample_tracking.db_progress")
-project_progress_complete <-
-  dbGetQuery(con, "SELECT * FROM sample_tracking.db_complete")
-# project metadata
-project_meta <- 
-  dbGetQuery(con, "SELECT * FROM sample_tracking.project_metadata")
-sample_meta <-
-  dbGetQuery(con, "SELECT * FROM sample_tracking.sample_metadata")
-
-# prepare meta-info for later use ----
-
-catalog <- dbGetQuery(con, "SELECT * FROM pg_catalog.pg_tables")
-# remove the ones that aren't for a specific project
-catalog <- catalog[!(catalog$schemaname %in% NON_PROJECT_SCHEMAS),]
-# group tables by their schema
-tables_by_schema <- aggregate(tablename ~ schemaname, catalog, unique)
-
-# all the different project names in the data
-projects <- sort(unique(c(catalog$schemaname, individual_progress$project_name, 
-                          project_progress_complete$project_name,
-                          project_meta$project_name, sample_meta$project_name)),
-                 decreasing = TRUE)
-
-# turn sample meta table into one that matches project names to organism/strain
-sample_meta <- aggregate(cbind(organism,strain) ~ project_name, 
-                         sample_meta, unique)
-# deal with projects missing in sample_metadata
-sample_meta <- rbind(sample_meta, data.frame(
-  project_name = projects[!(projects %in% sample_meta$project_name)],
-  organism = "missing", strain = "missing"))
-sample_meta$animal_type <- paste(sample_meta$organism, "-", sample_meta$strain)
-
-# helper functions for using meta-info ----
-
-# helper function to check if a certain table exists for a certain project
-table_exists <- function(project, table) {
-  # look up the schema for this project and check through its table catalog
-  project %in% tables_by_schema$schemaname &&
-    table %in% tables_by_schema[tables_by_schema$schemaname == project,2][[1]]
-}
-
-# helper function to check if a data table exists before actually loading it
-safely_load_df <- function(project, table, msg) {
-  # display an understandable message if the data table is not found
-  validate(need(table_exists(project, table), 
-                paste0(msg, " (.", table, " table missing)")))
-  # grab table if it exists
-  dbGetQuery(con, paste("select * from ", project, ".", table))
-}
-
-# table visualizations of said meta-info ----
-
-# make a table of which projects are in which tables
-
-# table to store information about whether other tables have each project
-projects_in_tables <- data.frame(project_name = projects)
-
-# manually fill in information about the projects
-projects_in_tables$progress_checklist <- 
-  sapply(projects_in_tables$project_name,
-         function(x) x %in% individual_progress$project_name)
-projects_in_tables$db_progress <- 
-  sapply(projects_in_tables$project_name, 
-         function(x) x %in% project_progress_active$project_name)
-projects_in_tables$db_complete <- sapply(
-  projects_in_tables$project_name, 
-  function(x) x %in% project_progress_complete$project_name)
-projects_in_tables$progress_metadata <- 
-  sapply(projects_in_tables$project_name, 
-         function(x) x %in% project_meta$project_name)
-  
-# strings for Javascript interpretation
-projects_in_tables[] <- lapply(projects_in_tables, as.character)
-
-# make a table of which schemas have which tables
-tables_in_schemas <- function(show_empty) {
-  # determine tables which have more than one occurrence in project schemas
-  common_tables <- table(catalog$tablename)
-  common_tables <- common_tables[common_tables > 1]
-  
-  # determine whether each project has the common tables or not
-  has_table <- data.frame(project_name = projects)
-  # for each common table name, add a column to global has_table data frame
-  sapply(names(common_tables), function(table) has_table[[table]] <<- 
-           # for each project_name (row), check if table_name is in its schema
-           sapply(has_table$project_name,
-                  function(project) {
-                    ifelse(table_exists(project, table), 
-                           # query database to check if tables empty if asked
-                           ifelse(show_empty && 
-                                    nrow(dbGetQuery(con, 
-                                                    paste0("select * from ", 
-                                                           project, ".", table))
-                                    ) == 0, 
-                                  "EMPTY", "TRUE"), "FALSE")
-                  })
-  )
-  
-  has_table
-}
 
 # functions for processing complicated enough to factor out ----
 
@@ -247,7 +124,7 @@ get_report_URL <- function(project) {
   # check hardcoded dictionary for anything extra to put in
   extra_reports <- unlist(REPORT_LOOKUP[
     REPORT_LOOKUP$project_name == project,]$report_names)
-
+  
   # initialize dataframe with just extra reports
   reports <- if(length(extra_reports) > 0) {
     data.frame(text = extra_reports, 
