@@ -33,11 +33,8 @@ output$t_in_s_explanation <- renderUI({
 output$tables_in_schemas <- DT::renderDataTable({
   DT::datatable(
     accessible_projects(tables_in_schemas(input$show_empty)),
-    rownames = F, options = table_options(F, "tables_in_schemas"), 
-    caption = paste(
-      "A 'true' means that the project named in that row has a table named",
-      "what the column is."
-      )
+    extensions = c("Buttons","FixedColumns"),
+    rownames = F, options = table_options(F, "tables_in_schemas")
   ) %>% color_tf()
 })
 
@@ -69,10 +66,7 @@ output$p_in_t_explanation <- renderUI({
 output$projects_in_tables <- DT::renderDataTable({ 
   DT::datatable(
     accessible_projects(projects_in_tables), rownames = F, 
-    options = table_options(F, "projects_in_tables"),
-    caption = paste(
-      "A 'true' means that the project named in that row appears in the",
-      "sample_tracking.X table, where X is the name of the column"
-    )
+    extensions = c("Buttons","FixedColumns"),
+    options = table_options(F, "projects_in_tables")
   ) %>% color_tf()
 })
