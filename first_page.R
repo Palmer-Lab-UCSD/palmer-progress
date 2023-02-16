@@ -28,39 +28,46 @@ output$projects_selector <- renderUI({
               options = list(`actions-box` = TRUE), multiple = T)
 })
 
+# generate a type-of-animal filter
 output$animal_selector <- renderUI({
   allowed <- unique(sample_meta[sample_meta$project_name %in% user_projects(),
                                 ]$animal_type)
-  pickerInput("animal_types", "Select animal type(s):", 
+  pickerInput("animal_types", "Select animal type(s) to filter projects by:", 
               choices = allowed, selected = allowed, 
               options = list(`actions-box` = TRUE), multiple = T)
 })
 
 # progress tables, split up by active and complete projects
 
+output$active_caption <- renderText(project_caption("ACTIVE"))
+
 output$by_project_active <- DT::renderDataTable({ 
   DT::datatable(
     process_progress_df(progress_tables$active), rownames = F, 
-    options = table_options(F, "active_progress"), 
-    caption = project_caption("ACTIVE")
+    extensions = c("Buttons", "FixedColumns"),
+    options = table_options(F, "active_progress")
   ) %>% bold_asterisk()
 })
+
+output$complete_caption <- renderText(project_caption("COMPLETE"))
 
 output$by_project_complete <- DT::renderDataTable({ 
   DT::datatable(
     process_progress_df(progress_tables$complete), rownames = F, 
-    options = table_options(F, "complete_progress"),
-    caption = project_caption("COMPLETE")
+    extensions = c("Buttons","FixedColumns"),
+    options = table_options(F, "complete_progress")
     ) %>% bold_asterisk()
 })
+
+output$animal_caption <- renderText("Animals' progress through a project")
 
 # low-level stats for each animal
 output$by_animal <- DT::renderDataTable({ 
   DT::datatable(
     progress_tables$individual, rownames = F, 
     filter = list(position = "top", clear = F), 
-    caption = "Each animal's progress through the project",
-    extensions = 'Buttons', options = table_options(T, "individual_progress")
+    extensions = c("Buttons","FixedColumns"), 
+    options = table_options(T, "individual_progress")
     )
 })
 
