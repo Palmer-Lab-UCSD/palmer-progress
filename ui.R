@@ -38,10 +38,11 @@ ui <- secure_app(
                 fluidPage(
                   tags$head(tags$style(
                     HTML("
-                    #by_project_active, #by_project_complete, #by_animal 
+                    #by_project_active, #by_project_complete, #by_animal, 
+                    #active_caption, #complete_caption, #animal_caption 
                       {font-size: 20px}
-                    .dataTables_scrollBody {transform:rotateX(180deg)}
-                    .dataTables_scrollBody table {transform:rotateX(180deg)}
+                    #active_caption, #complete_caption, #animal_caption 
+                      {color: #777;}
                          ")
                   )),
                   # page title
@@ -57,10 +58,13 @@ ui <- secure_app(
                                column(width = 6, uiOutput("projects_selector")),
                                column(width = 6, uiOutput("animal_selector"))
                              ),
-                             "* cells manually updated in the database",
+                             "* cells manually updated in the database", br(),
                              # display data tables
+                             textOutput("active_caption"),
                              dataTableOutput("by_project_active"),
+                             textOutput("complete_caption"),
                              dataTableOutput("by_project_complete"),
+                             textOutput("animal_caption"),
                              dataTableOutput("by_animal")
                     ),
                     # this sub-panel has bar-plots in it
@@ -181,8 +185,6 @@ ui <- secure_app(
                     HTML("
                     #tables_in_schemas, #projects_in_tables {font-size: 20px}
                     #t_in_s_explanation, #p_in_t_explanation {font-size: 24px}
-                    .dataTables_scrollBody {transform:rotateX(180deg)}
-                    .dataTables_scrollBody table {transform:rotateX(180deg)}
                     .col-sm-8 {width: 100%}
                          ")
                   )),
