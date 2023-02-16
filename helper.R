@@ -12,7 +12,7 @@ sapply(PACKAGES, require, character.only = TRUE)
 
 # contrasting colors which tolerate black text on top
 COLORBLIND_PALETTE <- c("#77AADD", "#EE8866", "#EEDD88", "#FFAABB", "#99DDFF",
-                                 "#44BB99", "#BBCC33", "#AAAA00", "#AAAAAA", "#444444")
+                        "#44BB99", "#BBCC33", "#AAAA00", "#AAAAAA", "#444444")
                                  
 # report URLS and dates to display
 URLS <- data.frame(urls = 
@@ -40,23 +40,24 @@ ASTERISK_CELLS <- data.frame(
 # hardcoded links to extra reports
 REPORT_LOOKUP <- data.frame(
   project_name = c("p50_hao_chen_2014", "p50_shelly_flagel_2014",
-                   "p50_jerry_richards_2014", "p50_paul_meyer_2014"),
+                   "p50_jerry_richards_2014", "p50_paul_meyer_2014",
+                   "u01_olivier_george_oxycodone"),
   report_names = I(list(list("elevated_plus_maze", "nicsa", "open_field",
                              "social_interaction", "novel_object"),
                         list("crf_MI", "ccc", "pavca_MI", "novelty_seeking"),
                         list("locomotor_testing", "delay_discounting", 
                              "light_reinforcement", "social_reinforcement", 
                              "reaction_time"),
-                        list("crf_NY", "pavca_NY", "ccp")))
+                        list("crf_NY", "pavca_NY", "ccp"),
+                        list("u01_olivier_george_oxy")))
 )
 
 # location of .database-access file when this app is live or local
 SERVER_CREDS <- "/srv/shiny-server/palmer-progress/.database-access.json"
 LOCAL_CREDS <- paste0(getwd(), "/.database-access.json")
 
-
 # reads json file (hidden in the server) for PostgreSQL credentials
-AMA_CREDS <- fromJSON(file = SERVER_CREDS) 
+AMA_CREDS <- fromJSON(file = LOCAL_CREDS) 
 
 # schemas to exclude from the project catalog
 NON_PROJECT_SCHEMAS <- c("information_schema", "orchid", "public",
@@ -146,7 +147,7 @@ get_report_URL <- function(project) {
 # produce the common list of options with parameters for minor variations
 table_options <- function(paging, filename)
   list(paging = paging, scrollX = T, ordering = T, searching = T, 
-       dom = 'Brtip',
+       dom = 'Brtip', fixedColumns = list(leftColumns = 1),
        buttons = list(
          list(extend = 'csv', filename = filename,
               title = paste(filename, "from Palmer Database")),
