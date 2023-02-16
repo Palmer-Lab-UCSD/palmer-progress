@@ -1,6 +1,5 @@
 # non-reactive constants/functions, run once to set up the environment
 source("helper.R", local = TRUE)
-
 # define UI of app
 source("ui.R", local = TRUE)
 
