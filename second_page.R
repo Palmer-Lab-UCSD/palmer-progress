@@ -79,7 +79,8 @@ output$round8_text <- renderText({ project_details$round8 })
 output$pheno_table = DT::renderDataTable({
   DT::datatable(
     pheno_info_table(), filter = list(position = "top", clear = FALSE),
-    options = table_options(T, "phenotypes_table")
+    extensions = c("Buttons","FixedColumns"),
+    rownames = F, options = table_options(T, "phenotypes_table")
   )
 }) 
 
