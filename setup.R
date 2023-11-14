@@ -39,6 +39,14 @@ project_meta <-
 sample_meta <-
   dbGetQuery(con, "SELECT * FROM sample_tracking.sample_metadata")
 
+# prepare progress tables for later use ----
+
+dead_col <- 'dead_exclude'
+project_progress_active <- 
+  project_progress_active[, colnames(project_progress_active) != dead_col]
+project_progress_complete <-
+  project_progress_complete[, colnames(project_progress_complete) != dead_col]
+
 # prepare meta-info for later use ----
 
 catalog <- dbGetQuery(con, "SELECT * FROM pg_catalog.pg_tables")
@@ -50,6 +58,7 @@ tables_by_schema <- aggregate(tablename ~ schemaname, catalog, unique)
 # all the different project names in the data
 projects <- sort(unique(c(catalog$schemaname, individual_progress$project_name, 
                           project_progress_complete$project_name,
+                          project_progress_active$project_name,
                           project_meta$project_name, sample_meta$project_name)),
                  decreasing = TRUE)
 
